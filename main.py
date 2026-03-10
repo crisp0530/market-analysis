@@ -109,6 +109,7 @@ def run(config_path: str | None = None, skip_ai: bool = False, skip_search: bool
     from src.collectors.global_index_collector import GlobalIndexCollector
     from src.collectors.us_etf_collector import USETFCollector
     from src.exporters.obsidian_exporter import ObsidianExporter
+    from src.exporters.json_exporter import JsonExporter
     from src.processors.anomaly_detector import AnomalyDetector
     from src.processors.cycle_analyzer import CycleAnalyzer
     from src.processors.market_analyzer import MarketAnalyzer
@@ -260,6 +261,14 @@ def run(config_path: str | None = None, skip_ai: bool = False, skip_search: bool
         stock_picks=stock_picks,
     )
     logger.info(f"  Report exported: {filepath}")
+
+    # JSON export for web dashboard
+    json_exporter = JsonExporter(str(base_dir / "data"))
+    json_path = json_exporter.export(
+        strength_df, anomalies, analysis_text,
+        cycle_signals, stock_picks, config
+    )
+    logger.info(f"  JSON exported: {json_path}")
 
     logger.info("=" * 60)
     logger.info("Market Analyst Agent completed")
