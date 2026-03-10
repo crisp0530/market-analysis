@@ -16,39 +16,32 @@ export default function OverviewPage({
 
   const { summary, strength } = data;
 
+  const tempColor = (temp: string | undefined) => {
+    if (!temp) return "text-text-muted";
+    if (temp === "强势" || temp === "偏强") return "text-accent-green";
+    if (temp === "弱势" || temp === "偏弱") return "text-accent-red";
+    return "text-[#f59e0b]";
+  };
+
   return (
     <div>
-      <h2 className="text-xl font-bold text-gold mb-6">
-        {"\u5168\u5c40\u6982\u89c8"}
-      </h2>
+      <h2 className="text-xl font-bold text-gold mb-6">全局概览</h2>
 
       <div className="grid grid-cols-4 gap-4 mb-6">
         <MetricCard
-          label="US \u5e02\u573a\u6e29\u5ea6"
-          value={summary.us_temperature || "\u2014"}
-          color={
-            summary.us_temperature === "\u504f\u5f3a"
-              ? "text-accent-green"
-              : "text-[#f59e0b]"
-          }
+          label="US 市场温度"
+          value={summary.us_temperature || "—"}
+          color={tempColor(summary.us_temperature)}
         />
         <MetricCard
-          label="CN \u5e02\u573a\u6e29\u5ea6"
-          value={summary.cn_temperature || "\u2014"}
-          color={
-            summary.cn_temperature === "\u504f\u5f3a"
-              ? "text-accent-green"
-              : "text-[#f59e0b]"
-          }
+          label="CN 市场温度"
+          value={summary.cn_temperature || "—"}
+          color={tempColor(summary.cn_temperature)}
         />
         <MetricCard
           label="VIX"
-          value={summary.vix_close ?? "\u2014"}
-          color={
-            (summary.vix_close ?? 20) < 20
-              ? "text-accent-green"
-              : "text-accent-red"
-          }
+          value={summary.vix_close ?? "—"}
+          color={(summary.vix_close ?? 20) < 20 ? "text-accent-green" : "text-accent-red"}
           subtitle={
             summary.vix_roc_5d
               ? `5d: ${summary.vix_roc_5d > 0 ? "+" : ""}${summary.vix_roc_5d}%`
@@ -56,18 +49,14 @@ export default function OverviewPage({
           }
         />
         <MetricCard
-          label="\u5f02\u5e38\u4fe1\u53f7"
+          label="异常信号"
           value={summary.anomaly_count}
-          color={
-            summary.anomaly_count > 0 ? "text-accent-red" : "text-accent-green"
-          }
+          color={summary.anomaly_count > 0 ? "text-accent-red" : "text-accent-green"}
         />
       </div>
 
       <div className="bg-card border border-border-subtle rounded-lg p-4">
-        <h3 className="text-sm font-semibold mb-3">
-          {"\u5f3a\u5f31\u6392\u540d"}
-        </h3>
+        <h3 className="text-sm font-semibold mb-3">强弱排名</h3>
         <DataTable
           columns={[
             { key: "rank", label: "#", align: "center" },
@@ -79,13 +68,8 @@ export default function OverviewPage({
               label: "ROC 5d",
               align: "right",
               render: (v: number) => (
-                <span
-                  className={
-                    v >= 0 ? "text-accent-green" : "text-accent-red"
-                  }
-                >
-                  {v >= 0 ? "+" : ""}
-                  {v?.toFixed(2)}%
+                <span className={v >= 0 ? "text-accent-green" : "text-accent-red"}>
+                  {v >= 0 ? "+" : ""}{v?.toFixed(2)}%
                 </span>
               ),
             },

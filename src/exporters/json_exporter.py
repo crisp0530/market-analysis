@@ -50,13 +50,16 @@ class JsonExporter:
             if "tier" in df.columns:
                 summary["tier_distribution"] = df["tier"].value_counts().to_dict()
 
-            # Market temperatures
-            for market in df["market"].dropna().unique():
-                market_df = df[df["market"] == market]
-                if "market_temperature" in market_df.columns:
-                    temps = market_df["market_temperature"].dropna()
-                    if not temps.empty:
-                        summary[f"{market}_temperature"] = temps.iloc[0]
+            # Market temperatures (from market_temp_5d numeric field)
+            if "market_temp_5d" in df.columns:
+                for market in ["us", "cn"]:
+                    market_df = df[df["market"] == market]
+                    if not market_df.empty:
+                        temps = market_df["market_temp_5d"].dropna()
+                        if not temps.empty:
+                            avg_temp = float(temps.mean())
+                            summary[f"{market}_temperature"] = self._temp_to_label(avg_temp)
+                            summary[f"{market}_temp_value"] = round(avg_temp, 2)
 
             # VIX
             vix_rows = df[df["symbol"] == "^VIX"]
@@ -67,19 +70,41 @@ class JsonExporter:
 
         return summary
 
+    @staticmethod
+    def _temp_to_label(temp_value: float) -> str:
+        """Convert market_temp_5d numeric value to human-readable label."""
+        if temp_value > 1.0:
+            return "强势"
+        elif temp_value > 0.3:
+            return "偏强"
+        elif temp_value > -0.3:
+            return "震荡"
+        elif temp_value > -1.0:
+            return "偏弱"
+        else:
+            return "弱势"
+
     def _df_to_records(self, df: pd.DataFrame) -> list:
         """Convert DataFrame to list of dicts, handling NaN/Inf."""
         if df is None or df.empty:
             return []
-        # Replace NaN/Inf with None for JSON serialization
-        clean_df = df.replace([float('inf'), float('-inf')], None)
-        records = clean_df.where(clean_df.notna(), None).to_dict(orient="records")
-        # Round floats
+        records = df.to_dict(orient="records")
+        # Clean each record: replace NaN/Inf with None, round floats
+        import math
+        cleaned = []
         for record in records:
+            clean_record = {}
             for k, v in record.items():
-                if isinstance(v, float):
-                    record[k] = round(v, 4)
-        return records
+                if v is None:
+                    clean_record[k] = None
+                elif isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+                    clean_record[k] = None
+                elif isinstance(v, float):
+                    clean_record[k] = round(v, 4)
+                else:
+                    clean_record[k] = v
+            cleaned.append(clean_record)
+        return cleaned
 
     def _cleanup_old_files(self, max_days: int = 30):
         """Delete JSON files older than max_days."""
