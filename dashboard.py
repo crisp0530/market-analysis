@@ -136,7 +136,43 @@ def load_data():
 
     dfs = [d for d in [us, cn, gl] if d is not None and not d.empty]
     if not dfs:
-        return None, None, None, None, None, None
+        # No cache found — try live data collection
+        logger.info("No cached data found, collecting fresh data...")
+        try:
+            from src.collectors.us_etf_collector import USETFCollector
+            from src.collectors.cn_etf_collector import CNETFCollector
+            from src.collectors.global_index_collector import GlobalIndexCollector
+
+            universe = yaml.safe_load(
+                open(base_dir / "config" / "etf_universe.yaml", encoding="utf-8")
+            )
+            lookback = config.get("data", {}).get("lookback_days", 60)
+
+            if config.get("data", {}).get("us_market", True):
+                us = cache.get_or_fetch(
+                    f"us_etf_{today}",
+                    lambda: USETFCollector().collect(universe.get("us_etfs", []), lookback),
+                    max_age_hours=8,
+                )
+            if config.get("data", {}).get("cn_market", True):
+                cn = cache.get_or_fetch(
+                    f"cn_etf_{today}",
+                    lambda: CNETFCollector().collect(universe.get("cn_etfs", []), lookback),
+                    max_age_hours=8,
+                )
+            if config.get("data", {}).get("global_indices", True):
+                gl = cache.get_or_fetch(
+                    f"global_idx_{today}",
+                    lambda: GlobalIndexCollector().collect(universe.get("global_indices", []), lookback),
+                    max_age_hours=8,
+                )
+
+            dfs = [d for d in [us, cn, gl] if d is not None and not d.empty]
+        except Exception as e:
+            logger.error(f"Live data collection failed: {e}")
+
+        if not dfs:
+            return None, None, None, None, None, None
 
     raw_df = pd.concat(dfs, ignore_index=True)
 
@@ -617,7 +653,7 @@ if strength_df is None or strength_df.empty:
         '<p style="font-family: Outfit, sans-serif; font-size: 1.1rem; color: #8888aa;">'
         '无缓存数据</p>'
         '<p style="font-family: JetBrains Mono, monospace; font-size: 0.8rem; color: #555577;">'
-        '请先运行 <code>python main.py</code> 生成数据</p></div>',
+        '数据采集失败，请检查网络连接或稍后重试</p></div>',
         unsafe_allow_html=True,
     )
     st.stop()
