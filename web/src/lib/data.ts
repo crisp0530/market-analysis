@@ -2,18 +2,28 @@ import fs from "fs";
 import path from "path";
 import { DailyData } from "./types";
 
-// Try multiple paths: parent dir (local dev & Vercel), or web/public/data (fallback)
-const DATA_DIR = (() => {
+// Find data directory - try all possible locations
+function findDataDir(): string {
   const candidates = [
-    path.join(process.cwd(), "..", "data"),      // local dev & Vercel (root dir = web/)
-    path.join(process.cwd(), "data"),             // if cwd is project root
-    path.join(process.cwd(), "public", "data"),   // static fallback
+    path.join(process.cwd(), "..", "data"),        // local dev (cwd=web/)
+    path.join(process.cwd(), "data"),              // cwd=project root
+    path.join(process.cwd(), "public", "data"),    // Vercel serverless (cwd=web/)
+    path.resolve(__dirname, "..", "..", "..", "public", "data"),  // relative to this file
+    path.resolve(__dirname, "..", "..", "..", "..", "data"),      // up from src/lib/
+    "/var/task/public/data",                        // Vercel lambda absolute
+    "/var/task/.next/server/public/data",           // Vercel .next output
   ];
   for (const dir of candidates) {
-    if (fs.existsSync(dir)) return dir;
+    try {
+      if (fs.existsSync(dir) && fs.readdirSync(dir).some(f => f.endsWith(".json"))) {
+        return dir;
+      }
+    } catch { /* skip */ }
   }
-  return candidates[0]; // default
-})();
+  return candidates[0];
+}
+
+const DATA_DIR = findDataDir();
 
 export function getAvailableDates(): string[] {
   try {
