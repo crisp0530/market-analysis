@@ -2,7 +2,18 @@ import fs from "fs";
 import path from "path";
 import { DailyData } from "./types";
 
-const DATA_DIR = path.join(process.cwd(), "..", "data");
+// Try multiple paths: parent dir (local dev & Vercel), or web/public/data (fallback)
+const DATA_DIR = (() => {
+  const candidates = [
+    path.join(process.cwd(), "..", "data"),      // local dev & Vercel (root dir = web/)
+    path.join(process.cwd(), "data"),             // if cwd is project root
+    path.join(process.cwd(), "public", "data"),   // static fallback
+  ];
+  for (const dir of candidates) {
+    if (fs.existsSync(dir)) return dir;
+  }
+  return candidates[0]; // default
+})();
 
 export function getAvailableDates(): string[] {
   try {
