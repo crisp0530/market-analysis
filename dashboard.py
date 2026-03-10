@@ -138,38 +138,70 @@ def load_data():
     if not dfs:
         # No cache found — try live data collection
         logger.info("No cached data found, collecting fresh data...")
-        try:
-            from src.collectors.us_etf_collector import USETFCollector
-            from src.collectors.cn_etf_collector import CNETFCollector
-            from src.collectors.global_index_collector import GlobalIndexCollector
+        import streamlit as _st
+        _collect_errors = []
 
-            universe = yaml.safe_load(
-                open(base_dir / "config" / "etf_universe.yaml", encoding="utf-8")
-            )
-            lookback = config.get("data", {}).get("lookback_days", 60)
+        with _st.spinner("首次加载，正在采集市场数据（约2-3分钟）..."):
+            try:
+                from src.collectors.us_etf_collector import USETFCollector
+                from src.collectors.cn_etf_collector import CNETFCollector
+                from src.collectors.global_index_collector import GlobalIndexCollector
 
-            if config.get("data", {}).get("us_market", True):
-                us = cache.get_or_fetch(
-                    f"us_etf_{today}",
-                    lambda: USETFCollector().collect(universe.get("us_etfs", []), lookback),
-                    max_age_hours=8,
+                universe = yaml.safe_load(
+                    open(base_dir / "config" / "etf_universe.yaml", encoding="utf-8")
                 )
-            if config.get("data", {}).get("cn_market", True):
-                cn = cache.get_or_fetch(
-                    f"cn_etf_{today}",
-                    lambda: CNETFCollector().collect(universe.get("cn_etfs", []), lookback),
-                    max_age_hours=8,
-                )
-            if config.get("data", {}).get("global_indices", True):
-                gl = cache.get_or_fetch(
-                    f"global_idx_{today}",
-                    lambda: GlobalIndexCollector().collect(universe.get("global_indices", []), lookback),
-                    max_age_hours=8,
-                )
+                lookback = config.get("data", {}).get("lookback_days", 60)
+            except Exception as e:
+                logger.error(f"Config/import failed: {e}")
+                _collect_errors.append(f"配置加载失败: {e}")
+
+            if not _collect_errors:
+                if config.get("data", {}).get("us_market", True):
+                    try:
+                        us = cache.get_or_fetch(
+                            f"us_etf_{today}",
+                            lambda: USETFCollector().collect(universe.get("us_etfs", []), lookback),
+                            max_age_hours=8,
+                        )
+                        logger.info(f"US data: {len(us) if us is not None else 0} rows")
+                    except Exception as e:
+                        _collect_errors.append(f"US 数据采集失败: {e}")
+                        logger.error(f"US collection failed: {e}")
+
+                if config.get("data", {}).get("cn_market", True):
+                    try:
+                        cn = cache.get_or_fetch(
+                            f"cn_etf_{today}",
+                            lambda: CNETFCollector().collect(universe.get("cn_etfs", []), lookback),
+                            max_age_hours=8,
+                        )
+                        logger.info(f"CN data: {len(cn) if cn is not None else 0} rows")
+                    except Exception as e:
+                        _collect_errors.append(f"CN 数据采集失败: {e}")
+                        logger.error(f"CN collection failed: {e}")
+
+                if config.get("data", {}).get("global_indices", True):
+                    try:
+                        gl = cache.get_or_fetch(
+                            f"global_idx_{today}",
+                            lambda: GlobalIndexCollector().collect(universe.get("global_indices", []), lookback),
+                            max_age_hours=8,
+                        )
+                        logger.info(f"Global data: {len(gl) if gl is not None else 0} rows")
+                    except Exception as e:
+                        _collect_errors.append(f"Global 数据采集失败: {e}")
+                        logger.error(f"Global collection failed: {e}")
 
             dfs = [d for d in [us, cn, gl] if d is not None and not d.empty]
-        except Exception as e:
-            logger.error(f"Live data collection failed: {e}")
+
+        if _collect_errors and not dfs:
+            _st.error("数据采集失败，详细错误：")
+            for err in _collect_errors:
+                _st.code(err)
+            return None, None, None, None, None, None
+        elif _collect_errors:
+            for err in _collect_errors:
+                _st.warning(err)
 
         if not dfs:
             return None, None, None, None, None, None
