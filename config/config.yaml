@@ -1,0 +1,92 @@
+general:
+  timezone: "Asia/Shanghai"
+  run_time: "08:30"
+  cache_dir: "data/cache"
+  log_dir: "logs"
+
+data:
+  lookback_days: 60
+  us_market: true
+  cn_market: true
+  global_indices: true
+
+analysis:
+  enabled: true
+  provider: "gemini"       # gemini / claude / openai
+  model: "gemini-3.1-pro-preview"  # 按 provider 选择模型
+  # gemini: gemini-3.1-pro-preview (默认，深度最强) / gemini-2.5-flash (便宜快速)
+  # claude: claude-opus-4-5-20251101
+  # openai: gpt-4o
+  max_tokens: 8192
+  temperature: 0.3
+  fallback_to_data_only: true
+  challenge_enabled: false  # AI自我审查（Devil's Advocate），开启后多一次API调用
+
+web_search:
+  enabled: true
+  max_anomalies_to_verify: 5
+  provider: "tavily"       # tavily (推荐) / duckduckgo
+
+obsidian:
+  vault_path: "E:/obsidian/Medy"
+  output_path: "03_output/market-analysis"
+  tags: ["market-analysis", "daily", "auto-generated"]
+
+strength:
+  weights:
+    roc_5d: 0.5
+    roc_20d: 0.3
+    roc_60d: 0.2
+  tiers:
+    T1: 80
+    T2: 60
+    T3: 40
+  cross_market_calibration: true  # 跨市场Z-score校准
+
+anomaly:
+  zscore_threshold: 2.0
+  tier_jump_days: 20
+  cluster_threshold: 0.4
+  vix_levels:
+    low: 15
+    high: 25
+    extreme: 35
+  momentum_reversal_threshold: 3.0  # delta_roc_5d 超过此值触发动量反转异常
+
+cycle:
+  sma_short: 20
+  sma_long: 50
+  vol_contraction_ratio: 0.7
+  breakout_roc_threshold: 3.0
+  parabolic_roc_threshold: 10.0
+  bear_roc_threshold: -5.0
+  bull_roc_threshold: 5.0
+  lead_lag_max_shift: 30
+  lead_lag_min_corr: 0.5
+  signals_enabled: true
+  lead_lag_enabled: false  # 60天数据不足以检测有效关系，扩展到180天后再启用
+
+premarket:
+  enabled: true
+  watchlist:             # 用户持仓/关注标的，始终拉取盘前数据
+    - KC                 # 金山云
+    # - BABA
+    # - TSLA
+
+fear_score:
+  enabled: true
+  weights:
+    rsi: 25
+    drawdown: 25
+    streak: 25
+    momentum: 25
+  fear_labels:
+    extreme_greed: 25
+    greed: 40
+    neutral: 60
+    fear: 75
+  bottom_labels:
+    none: 20
+    early: 40
+    signs: 60
+    strong: 80
