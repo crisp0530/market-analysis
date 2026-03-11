@@ -90,3 +90,16 @@ fear_score:
     early: 40
     signs: 60
     strong: 80
+
+momentum_scan:
+  enabled: true
+  us:
+    min_market_cap: 3e9
+    min_avg_volume: 300000
+  cn:
+    min_market_cap: 3e9
+    min_avg_volume: 100000
+  thresholds:
+    perf_5d: 15
+    perf_20d: 30
+  max_results: 20
