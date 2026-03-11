@@ -59,9 +59,9 @@ function getHeatColor(roc: number): string {
 }
 
 const MARKET_LABELS: Record<string, string> = {
-  us: "\ud83c\uddfa\ud83c\uddf8 \u7f8e\u80a1",
-  cn: "\ud83c\udde8\ud83c\uddf3 A\u80a1",
-  global: "\ud83c\udf0d \u5168\u7403",
+  us: "🇺🇸 美股",
+  cn: "🇨🇳 A股",
+  global: "🌍 全球",
 };
 
 const MARKET_ORDER = ["us", "cn", "global"];
@@ -101,7 +101,7 @@ export default function SectorsPage({
   return (
     <div>
       <h2 className="text-xl font-bold text-gold mb-6">
-        {"\ud83d\uddfa\ufe0f \u677f\u5757\u70ed\u529b\u56fe"}
+        {"板块热力图"}
       </h2>
 
       {markets.map((market) => {
@@ -173,14 +173,14 @@ export default function SectorsPage({
                   </div>
 
                   {/* Tier Distribution */}
-                  <div className="flex gap-1 mt-3 flex-wrap">
+                  <div className="flex gap-2 mt-3 flex-wrap">
                     {(["T1", "T2", "T3", "T4"] as const).map((tier) => {
                       const count = sg.tierDist[tier] || 0;
                       if (count === 0) return null;
                       return (
-                        <span key={tier} className="flex items-center gap-0.5">
+                        <span key={tier} className="flex items-center gap-1">
                           <TierBadge tier={tier} />
-                          <span className="text-text-muted text-[10px]">
+                          <span className="text-text-primary text-xs font-mono">
                             {count}
                           </span>
                         </span>
