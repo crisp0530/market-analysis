@@ -1,0 +1,23 @@
+# Portfolio configuration for Market Analyst
+# Update this file with your holdings and watchlist
+
+holdings:
+  # - symbol: PLTR
+  #   name: Palantir
+  #   avg_cost: 140
+  #   target_buy: 140        # target price to add more
+  #   target_sell: null       # target price to sell (optional)
+  #   position_pct: 10        # % of total portfolio (optional)
+  #   notes: "Wait for pullback to $140"
+
+watchlist:
+  # - symbol: NVDA
+  #   name: NVIDIA
+  #   target_buy: 170
+  #   target_sell: null
+  #   logic: "200-day EMA support, GTC catalyst"
+  #   position_plan: "First batch 40%"
+
+settings:
+  ema_periods: [20, 50, 100, 200]
+  proximity_threshold: 4     # alert when price within N% of target
