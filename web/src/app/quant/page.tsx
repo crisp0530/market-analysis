@@ -62,27 +62,27 @@ export default function QuantPage({
   return (
     <div>
       <h2 className="text-xl font-bold text-gold mb-6">
-        {"\uD83D\uDD22 \u91CF\u5316\u9762\u677F"}
+        {"量化面板"}
       </h2>
 
       {/* Summary MetricCards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <MetricCard
-          label="\u5E73\u5747 Sharpe"
+          label="平均 Sharpe"
           value={fmt(avgSharpe)}
           color={sharpeColor(avgSharpe ?? undefined)}
         />
         <MetricCard
-          label="\u6700\u5DEE\u56DE\u64A4"
+          label="最差回撤"
           value={pct(worstDD)}
           color="text-accent-red"
         />
         <MetricCard
-          label="\u5E73\u5747\u6CE2\u52A8\u7387"
+          label="平均波动率"
           value={pct(avgVol)}
         />
         <MetricCard
-          label="\u6700\u9AD8 Calmar"
+          label="最高 Calmar"
           value={fmt(bestCalmar)}
           color="text-accent-green"
         />
@@ -91,7 +91,7 @@ export default function QuantPage({
       {/* Main DataTable */}
       <div className="bg-card border border-border-subtle rounded-lg p-4 mb-6">
         <h3 className="text-sm font-semibold mb-3">
-          {"\u91CF\u5316\u6392\u540D (Sharpe \u964D\u5E8F)"}
+          {"量化排名 (Sharpe 降序)"}
         </h3>
         <DataTable
           columns={[
@@ -138,7 +138,7 @@ export default function QuantPage({
             },
             {
               key: "ann_vol",
-              label: "\u6CE2\u52A8\u7387",
+              label: "波动率",
               align: "right",
               render: (v: number) => pct(v),
             },
@@ -150,7 +150,7 @@ export default function QuantPage({
             },
             {
               key: "ann_return",
-              label: "\u5E74\u5316\u6536\u76CA",
+              label: "年化收益",
               align: "right",
               render: (v: number) => (
                 <span className={returnColor(v)}>{pct(v)}</span>
@@ -171,7 +171,7 @@ export default function QuantPage({
       {riskItems.length > 0 && (
         <div className="mb-6">
           <h3 className="text-sm font-semibold mb-3 text-accent-red">
-            {"\u26A0\uFE0F \u9AD8\u98CE\u9669\u6807\u7684"} ({riskItems.length})
+            {"高风险标的"} ({riskItems.length})
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {riskItems.map((item) => (
@@ -203,11 +203,11 @@ export default function QuantPage({
                     </span>
                   </div>
                   <div>
-                    <span className="text-text-muted">{"\u6CE2\u52A8\u7387"}: </span>
+                    <span className="text-text-muted">{"波动率"}: </span>
                     <span>{pct(item.ann_vol)}</span>
                   </div>
                   <div>
-                    <span className="text-text-muted">{"\u5E74\u5316"}: </span>
+                    <span className="text-text-muted">{"年化"}: </span>
                     <span className={returnColor(item.ann_return)}>
                       {pct(item.ann_return)}
                     </span>

@@ -13,6 +13,8 @@ const NAV_ITEMS = [
   { href: "/stocks", label: "\u4e2a\u80a1\u673a\u4f1a", icon: "\ud83c\udfaf" },
   { href: "/sectors", label: "\u677f\u5757\u70ed\u529b\u56fe", icon: "\ud83d\uddfa\ufe0f" },
   { href: "/quant", label: "\u91cf\u5316\u9762\u677f", icon: "\ud83d\udd22" },
+  { href: "/momentum", label: "动量异动", icon: "🚀" },
+  { href: "/portfolio", label: "持仓建议", icon: "💼" },
 ];
 
 function SidebarContent({

@@ -1,3 +1,55 @@
+export interface MomentumItem {
+  symbol: string;
+  name: string;
+  market: string;
+  price: number;
+  change_pct: number;
+  perf_5d: number;
+  perf_20d: number;
+  trigger: string;
+  rel_volume: number;
+  rsi: number;
+  cmf: number;
+  market_cap_b: number;
+  market_cap_unit?: string;
+  sector: string;
+  industry: string;
+}
+
+export interface MomentumData {
+  us_momentum: MomentumItem[];
+  cn_momentum: MomentumItem[];
+}
+
+export interface PortfolioItem {
+  symbol: string;
+  name: string;
+  type: string;
+  current_price: number;
+  daily_change_pct: number;
+  avg_cost?: number;
+  target_buy?: number;
+  target_sell?: number;
+  distance_to_target_pct?: number;
+  distance_to_ema200_pct?: number;
+  rsi?: number;
+  cmf?: number;
+  status: string;
+  signal_strength: string;
+  notes?: string;
+  logic?: string;
+  position_plan?: string;
+  ema_20?: number;
+  ema_50?: number;
+  ema_100?: number;
+  ema_200?: number;
+}
+
+export interface PortfolioAdvice {
+  items: PortfolioItem[];
+  advice_text: string;
+}
+
 export interface DailyData {
   date: string;
   generated_at: string;
@@ -7,6 +59,8 @@ export interface DailyData {
   cycle_signals: CycleSignal[];
   stock_picks: Record<string, StockPick[]>;
   analysis_text: string;
+  momentum_surge?: MomentumData;
+  portfolio_advice?: PortfolioAdvice;
 }
 
 export interface Summary {
