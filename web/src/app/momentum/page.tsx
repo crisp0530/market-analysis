@@ -77,7 +77,7 @@ function makeMomentumColumns() {
       ),
     },
     {
-      key: "pct_5d",
+      key: "perf_5d",
       label: "5d%",
       align: "right" as const,
       render: (v: number) => (
@@ -87,7 +87,7 @@ function makeMomentumColumns() {
       ),
     },
     {
-      key: "pct_1m",
+      key: "perf_20d",
       label: "1M%",
       align: "right" as const,
       render: (v: number) => (
@@ -112,13 +112,23 @@ function makeMomentumColumns() {
       align: "right" as const,
       render: (v: number) => {
         if (v == null) return "—";
-        const color =
-          v > 70
-            ? "text-accent-red"
-            : v < 30
-            ? "text-accent-green"
-            : "text-text-primary";
-        return <span className={color}>{v.toFixed(0)}</span>;
+        if (v > 70) {
+          return (
+            <span className="text-accent-red font-semibold">
+              {v.toFixed(0)}
+              <span className="text-[10px] ml-0.5 opacity-70">超买</span>
+            </span>
+          );
+        }
+        if (v < 30) {
+          return (
+            <span className="text-accent-green font-semibold">
+              {v.toFixed(0)}
+              <span className="text-[10px] ml-0.5 opacity-70">超卖</span>
+            </span>
+          );
+        }
+        return <span>{v.toFixed(0)}</span>;
       },
     },
     {
@@ -189,10 +199,10 @@ export default function MomentumPage({
   // --- Summary stats ---
   const allItems = [...usItems, ...cnItems];
   const all5d = allItems
-    .map((s) => s.pct_5d)
+    .map((s) => s.perf_5d)
     .filter((v): v is number => v != null);
   const all1m = allItems
-    .map((s) => s.pct_1m)
+    .map((s) => s.perf_20d)
     .filter((v): v is number => v != null);
 
   const best5d = all5d.length > 0 ? Math.max(...all5d) : null;

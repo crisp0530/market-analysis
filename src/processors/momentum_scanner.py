@@ -38,6 +38,10 @@ class MomentumScanner:
 
         self.max_results = cfg.get("max_results", 20)
 
+        # A股过滤：科创板(688)需50万、创业板(300)需10万门槛
+        cn_cfg_filter = cn_cfg.get("exclude_prefixes", ["688", "300"])
+        self.cn_exclude_prefixes = tuple(cn_cfg_filter)
+
     def scan(self) -> dict:
         """Scan US and CN markets for momentum surges.
 
@@ -92,6 +96,17 @@ class MomentumScanner:
                 else:
                     row["_hit_20d"] = True
                     merged[sym] = row
+
+            # Filter CN restricted boards
+            if market_label == "cn" and self.cn_exclude_prefixes:
+                before = len(merged)
+                merged = {
+                    sym: item for sym, item in merged.items()
+                    if not sym.startswith(self.cn_exclude_prefixes)
+                }
+                filtered = before - len(merged)
+                if filtered:
+                    logger.debug(f"Momentum: filtered {filtered} CN restricted stocks (688/300)")
 
             # Classify triggers and build output
             output = []
