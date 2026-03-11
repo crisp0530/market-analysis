@@ -94,10 +94,10 @@ fear_score:
 momentum_scan:
   enabled: true
   us:
-    min_market_cap: 3e9
+    min_market_cap: 3000000000
     min_avg_volume: 300000
   cn:
-    min_market_cap: 3e9
+    min_market_cap: 3000000000
     min_avg_volume: 100000
   thresholds:
     perf_5d: 15

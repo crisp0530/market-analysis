@@ -25,12 +25,12 @@ class MomentumScanner:
         self.enabled = cfg.get("enabled", True) and TV_AVAILABLE
 
         us_cfg = cfg.get("us", {})
-        self.us_min_cap = us_cfg.get("min_market_cap", 3e9)
-        self.us_min_avg_vol = us_cfg.get("min_avg_volume", 300000)
+        self.us_min_cap = float(us_cfg.get("min_market_cap", 3e9))
+        self.us_min_avg_vol = float(us_cfg.get("min_avg_volume", 300000))
 
         cn_cfg = cfg.get("cn", {})
-        self.cn_min_cap = cn_cfg.get("min_market_cap", 3e9)
-        self.cn_min_avg_vol = cn_cfg.get("min_avg_volume", 100000)
+        self.cn_min_cap = float(cn_cfg.get("min_market_cap", 3e9))
+        self.cn_min_avg_vol = float(cn_cfg.get("min_avg_volume", 100000))
 
         thresholds = cfg.get("thresholds", {})
         self.threshold_5d = thresholds.get("perf_5d", 15)
