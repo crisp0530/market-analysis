@@ -16,7 +16,9 @@ class JsonExporter:
 
     def export(self, strength_df: pd.DataFrame, anomalies: list,
                analysis_text: str, cycle_signals: list,
-               stock_picks: dict, config: dict) -> Path:
+               stock_picks: dict, config: dict,
+               momentum_data: dict | None = None,
+               portfolio_advice: dict | None = None) -> Path:
         """Export all analysis data to a dated JSON file."""
         today = datetime.now().strftime("%Y-%m-%d")
         data = {
@@ -27,6 +29,8 @@ class JsonExporter:
             "anomalies": anomalies,
             "cycle_signals": cycle_signals,
             "stock_picks": stock_picks,
+            "momentum_surge": momentum_data or {},
+            "portfolio_advice": portfolio_advice or {},
             "analysis_text": analysis_text or "",
         }
 

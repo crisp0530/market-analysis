@@ -28,6 +28,8 @@ class ObsidianExporter:
         cycle_signals: list | None = None,
         lead_lag: list | None = None,
         stock_picks: dict | None = None,
+        momentum_data: dict | None = None,
+        portfolio_advice: dict | None = None,
     ) -> str:
         """Generate and save a markdown report, returning its absolute path."""
         if date is None:
@@ -48,6 +50,8 @@ class ObsidianExporter:
             cycle_signals or [],
             lead_lag or [],
             stock_picks or {},
+            momentum_data=momentum_data or {},
+            portfolio_advice=portfolio_advice or {},
         )
 
         filepath.write_text(content, encoding="utf-8")
@@ -64,6 +68,8 @@ class ObsidianExporter:
         cycle_signals: list,
         lead_lag: list,
         stock_picks: dict,
+        momentum_data: dict | None = None,
+        portfolio_advice: dict | None = None,
     ) -> str:
         sections: list[str] = []
         sections.append(self._frontmatter(date, strength_df, anomalies))
@@ -81,6 +87,12 @@ class ObsidianExporter:
 
         if stock_picks:
             sections.append(self._section_stock_picks(stock_picks))
+
+        if momentum_data:
+            sections.append(self._section_momentum(momentum_data))
+
+        if portfolio_advice and portfolio_advice.get("items"):
+            sections.append(self._section_portfolio(portfolio_advice))
 
         sections.append(self._section_market_strength(strength_df, "us", "US"))
         sections.append(self._section_market_strength(strength_df, "cn", "CN"))
@@ -358,6 +370,79 @@ class ObsidianExporter:
             )
         lines.append("")
         return lines
+
+    def _section_momentum(self, momentum_data: dict) -> str:
+        lines = ["## Momentum Surges\n"]
+
+        for market_key, label, currency, cap_unit in [
+            ("us_momentum", "US Momentum (5d >15% or 1M >30%)", "$", "B"),
+            ("cn_momentum", "CN Momentum (5d >15% or 1M >30%)", "¥", "亿"),
+        ]:
+            items = momentum_data.get(market_key, [])
+            if not items:
+                continue
+            lines.append(f"### {label}\n")
+            lines.append("| Name | Symbol | Price | Day % | 5d % | 1M % | Trigger | RSI | RelVol | MktCap | Industry |")
+            lines.append("|---|---|---:|---:|---:|---:|---|---:|---:|---:|---|")
+            for s in items:
+                unit = s.get("market_cap_unit", cap_unit)
+                lines.append(
+                    f"| {s.get('name', '')} | {s['symbol']} | {currency}{s.get('price', 0):.2f} | "
+                    f"{self._fmt_pct(s.get('change_pct'))} | {self._fmt_pct(s.get('perf_5d'))} | "
+                    f"{self._fmt_pct(s.get('perf_20d'))} | {s.get('trigger', '')} | "
+                    f"{s.get('rsi', 0):.0f} | {s.get('rel_volume', 0):.2f}x | "
+                    f"{s.get('market_cap_b', 0):.0f}{unit} | {str(s.get('industry', ''))[:20]} |"
+                )
+            lines.append("")
+
+        if not any(momentum_data.get(k) for k in ("us_momentum", "cn_momentum")):
+            lines.append("*No multi-day momentum surges detected*\n")
+
+        return "\n".join(lines)
+
+    def _section_portfolio(self, portfolio_advice: dict) -> str:
+        lines = ["## Portfolio Action Plan\n"]
+
+        items = portfolio_advice.get("items", [])
+        advice_text = portfolio_advice.get("advice_text", "")
+
+        if advice_text:
+            lines.append(advice_text)
+            lines.append("")
+        else:
+            # Fallback: structured table
+            holdings = [i for i in items if i["type"] == "holding"]
+            watchlist = [i for i in items if i["type"] == "watchlist"]
+
+            if holdings:
+                lines.append("### Holdings\n")
+                lines.append("| Name | Symbol | Cost | Current | P/L % | Status | Notes |")
+                lines.append("|---|---|---:|---:|---:|---|---|")
+                for h in holdings:
+                    pnl = ""
+                    if h.get("avg_cost") and h.get("current_price"):
+                        pnl_val = (h["current_price"] / h["avg_cost"] - 1) * 100
+                        pnl = f"{pnl_val:+.1f}"
+                    lines.append(
+                        f"| {h['name']} | {h['symbol']} | ${h.get('avg_cost', '—')} | "
+                        f"${h.get('current_price', '—')} | {pnl} | {h.get('status', '')} | "
+                        f"{h.get('notes', '')} |"
+                    )
+                lines.append("")
+
+            if watchlist:
+                lines.append("### Watchlist\n")
+                lines.append("| Name | Symbol | Target | Current | Distance | Status | Signal |")
+                lines.append("|---|---|---:|---:|---:|---|---|")
+                for w in watchlist:
+                    lines.append(
+                        f"| {w['name']} | {w['symbol']} | ${w.get('target_buy', '—')} | "
+                        f"${w.get('current_price', '—')} | {w.get('distance_to_target_pct', '—')}% | "
+                        f"{w.get('status', '')} | {w.get('signal_strength', '')} |"
+                    )
+                lines.append("")
+
+        return "\n".join(lines)
 
     def _section_cycle(self, strength_df: pd.DataFrame, cycle_signals: list, lead_lag: list) -> str:
         lines = ["## Breakout / Parabolic Signals\n"]

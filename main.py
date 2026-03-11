@@ -249,6 +249,27 @@ def run(config_path: str | None = None, skip_ai: bool = False, skip_search: bool
         scanner = SectorScanner(config)
         stock_picks = scanner.scan(strength_df)
 
+    momentum_data: dict = {}
+    if config.get("momentum_scan", {}).get("enabled", True):
+        logger.info("Step 5.6: momentum scan...")
+        from src.processors.momentum_scanner import MomentumScanner
+
+        mom_scanner = MomentumScanner(config)
+        momentum_data = mom_scanner.scan()
+
+    portfolio_advice: dict = {}
+    portfolio_path = base_dir / "config" / "portfolio.yaml"
+    if portfolio_path.exists():
+        logger.info("Step 5.7: portfolio advice...")
+        from src.processors.portfolio_advisor import PortfolioAdvisor
+
+        advisor = PortfolioAdvisor(str(portfolio_path), config)
+        portfolio_advice = advisor.analyze()
+        if portfolio_advice.get("items"):
+            logger.info(f"  Portfolio: {len(portfolio_advice['items'])} items analyzed")
+        else:
+            logger.info("  Portfolio: no items configured")
+
     logger.info("Step 6/6: exporting report...")
     exporter = ObsidianExporter(config)
     filepath = exporter.export(
@@ -259,6 +280,8 @@ def run(config_path: str | None = None, skip_ai: bool = False, skip_search: bool
         cycle_signals=cycle_signals,
         lead_lag=lead_lag,
         stock_picks=stock_picks,
+        momentum_data=momentum_data,
+        portfolio_advice=portfolio_advice,
     )
     logger.info(f"  Report exported: {filepath}")
 
@@ -266,7 +289,9 @@ def run(config_path: str | None = None, skip_ai: bool = False, skip_search: bool
     json_exporter = JsonExporter(str(base_dir / "data"))
     json_path = json_exporter.export(
         strength_df, anomalies, analysis_text,
-        cycle_signals, stock_picks, config
+        cycle_signals, stock_picks, config,
+        momentum_data=momentum_data,
+        portfolio_advice=portfolio_advice,
     )
     logger.info(f"  JSON exported: {json_path}")
 
