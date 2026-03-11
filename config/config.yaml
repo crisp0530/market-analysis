@@ -99,7 +99,7 @@ momentum_scan:
   cn:
     min_market_cap: 3000000000
     min_avg_volume: 100000
-    exclude_prefixes: ["688", "300"]  # 科创板(50万门槛)、创业板(10万门槛)
+    exclude_prefixes: ["688", "30"]  # 科创板(688,50万门槛)、创业板(300/301,10万门槛)
   thresholds:
     perf_5d: 15
     perf_20d: 30
